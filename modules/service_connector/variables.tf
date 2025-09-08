@@ -3,11 +3,6 @@ variable "compartment_id" {
   type        = string
 }
 
-variable "log_group_id" {
-  description = "Log group OCID to use as source for the service connector"
-  type        = string
-}
-
 variable "target_stream_id" {
   description = "Target stream OCID for the service connector"
   type        = string
@@ -18,3 +13,4 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+

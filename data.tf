@@ -6,9 +6,9 @@ data "oci_identity_tenancy" "current" {
 }
 
 # Get current compartment information
-data "oci_identity_compartment" "current" {
-  id = var.compartment_id
-}
+# data "oci_identity_compartment" "current" {
+#   id = local.compartment_id
+# }
 
 # Get current user information (if available)
 data "oci_identity_user" "current" {
@@ -31,17 +31,6 @@ data "oci_logging_log_group" "existing_log_group" {
   log_group_id = var.existing_log_group_id
 }
 
-# Get existing dynamic group if specified
-data "oci_identity_dynamic_group" "existing_dynamic_group" {
-  count = var.existing_dynamic_group_id != "" ? 1 : 0
-  dynamic_group_id = var.existing_dynamic_group_id
-}
-
-# Get target stream information
-data "oci_streaming_stream" "target_stream" {
-  stream_id = var.target_stream_id
-}
-
 # Get availability domains for the compartment
 data "oci_identity_availability_domains" "ads" {
   compartment_id = var.tenancy_ocid
@@ -51,4 +40,29 @@ data "oci_identity_availability_domains" "ads" {
 data "oci_identity_api_keys" "current_user_keys" {
   count = var.user_ocid != "" ? 1 : 0
   user_id = var.user_ocid
+}
+
+# # Fetch actual stream ID from Firefly service using region endpoint
+data "http" "firefly_stream_lookup" {
+  depends_on = [data.http.firefly_login]
+  url = "${var.firefly_endpoint}/integrations/oci/stream-ids"
+  method = "GET"
+  request_headers = {
+    Authorization = "Bearer ${local.token}"
+  }
+}
+
+
+data "oci_identity_domains" "all_domains" {
+  compartment_id = var.tenancy_ocid
+}
+
+data "oci_identity_domains_user" "user_in_domain" {
+  for_each      = { for d in data.oci_identity_domains.all_domains.domains : d.id => d }
+  idcs_endpoint = each.value.url
+  user_id       = var.user_ocid
+}
+
+data "oci_identity_domain" "domain" {
+  domain_id = local.matching_domain_id
 }

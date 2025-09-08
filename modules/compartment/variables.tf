@@ -1,21 +1,22 @@
 variable "compartment_id" {
-  description = "Existing compartment OCID to use. If empty, a new compartment will be created."
+  description = "The id of the compartment"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "parent_compartment_id" {
-  description = "Parent compartment OCID where the new compartment will be created"
-  type        = string
-}
-
-variable "new_compartment_name" {
-  description = "Name for the new compartment if creating one"
+  description = "The ID of the parent compartment"
   type        = string
 }
 
 variable "tags" {
-  description = "Tags to apply to the compartment"
+  description = "A map of tags to assign to the compartment"
   type        = map(string)
   default     = {}
+}
+
+variable "new_compartment_name" {
+  description = "The name of the new compartment to create, if no compartment_id is provided"
+  type        = string
+  default     = "Firefly"
 }

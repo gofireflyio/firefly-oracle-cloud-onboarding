@@ -1,8 +1,9 @@
 terraform {
+  required_version = ">= 1.5.0"
   required_providers {
     oci = {
       source  = "oracle/oci"
-      version = "~> 5.0"
+      version = ">=7.1.0"
     }
   }
 }
@@ -18,7 +19,7 @@ resource "oci_sch_service_connector" "firefly_connector" {
     kind = "logging"
     log_sources {
       compartment_id = var.compartment_id
-      log_group_id   = var.log_group_id
+      log_group_id   = "_Audit_Include_Subcompartment"
     }
   }
   
@@ -28,11 +29,6 @@ resource "oci_sch_service_connector" "firefly_connector" {
     stream_id = var.target_stream_id
   }
   
-  # Tasks: Transform and filter logs
-  tasks {
-    kind = "logRule"
-    condition = "true"  # Include all audit logs
-  }
   
   freeform_tags = var.tags
 }

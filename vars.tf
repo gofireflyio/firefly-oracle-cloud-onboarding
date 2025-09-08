@@ -1,16 +1,6 @@
 variable "firefly_endpoint" {
   type    = string
-  default = "https://prodapi.firefly.ai/api"
-}
-
-variable "firefly_webhook_url" {
-  type    = string
-  default = "https://oci-events.firefly.ai"
-}
-
-variable "trigger_integrations" {
-  type    = bool
-  default = true
+  default = "https://api-env2.dev.firefly.ai/api"
 }
 
 variable "firefly_access_key" {
@@ -42,12 +32,10 @@ variable "tenancy_ocid" {
 
 variable "compartment_id" {
   type        = string
-  description = "OCI Compartment OCID"
-  validation {
-    condition     = var.compartment_id != ""
-    error_message = "Variable \"compartment_id\" cannot be empty."
-  }
+  description = "OCID of the compartment to create or use for Firefly resources. If null, a compartment named 'Firefly' will be created in the tenancy."
+  default     = null
 }
+
 
 variable "user_ocid" {
   type        = string
@@ -57,7 +45,7 @@ variable "user_ocid" {
 
 variable "region" {
   type    = string
-  default = "us-ashburn-1"
+  default = "il-jerusalem-1"
 }
 
 variable "prefix" {
@@ -75,14 +63,6 @@ variable "tags" {
   default = {}
 }
 
-variable "target_stream_id" {
-  type        = string
-  description = "OCI Stream OCID for Service Connector Hub target"
-  validation {
-    condition     = var.target_stream_id != ""
-    error_message = "Variable \"target_stream_id\" cannot be empty."
-  }
-}
 
 variable "existing_log_group_id" {
   type    = string
@@ -94,13 +74,26 @@ variable "existing_dynamic_group_id" {
   default = ""
 }
 
-variable "firefly_eips" {
-  type = list(string)
-  default = [
-    "3.224.145.192",
-    "54.83.245.177",
-    "3.213.167.195",
-    "54.146.252.237",
-    "34.226.97.113"
-  ]
+variable "dynamic_group_name" {
+  type        = string
+  description = "The name of the dynamic group for giving access to service connector"
+  default     = "firefly-dynamic-group"
+}
+
+variable "firefly_auth_policy" {
+  type        = string
+  description = "The name of the policy for auth"
+  default     = "firefly-auth-policy"
+}
+
+variable "existing_user_id" {
+  type        = string
+  description = "The OCID of an existing user to use. If provided, user_name will be ignored."
+  default     = null
+}
+
+variable "existing_group_id" {
+  type        = string
+  description = "The OCID of an existing group to use. If provided, a new group will not be created."
+  default     = null
 }

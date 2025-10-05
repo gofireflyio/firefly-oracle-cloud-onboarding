@@ -18,6 +18,9 @@ data "http" "firefly_oci_integration_request" {
       "region"                     = var.region
     }
   )
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }
 
 locals {

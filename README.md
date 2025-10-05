@@ -99,7 +99,7 @@ The Terraform module will create the following OCI resources:
 
 ## Deploy to OCI
 
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?)
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/gofireflyio/firefly-oracle-cloud-onboarding/releases/latest/download/terraform-firefly-oci-onboarding.zip)
 
 ### Optional Resources
 If you don't provide existing resource IDs, the module will create new ones. You can reuse existing resources by providing their OCIDs via variables.

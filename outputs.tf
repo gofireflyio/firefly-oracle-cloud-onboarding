@@ -4,10 +4,10 @@ output "dynamic_group_id" {
 }
 
 
-output "service_connector_id" {
-  description = "The OCID of the Firefly service connector"
-  value       = module.service_connector.service_connector_id
-}
+# output "service_connector_id" {
+#   description = "The OCID of the Firefly service connector"
+#   value       = module.service_connector[0].service_connector_id
+# }
 
 
 output "tenancy_info" {

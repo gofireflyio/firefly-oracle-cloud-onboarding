@@ -97,3 +97,9 @@ variable "existing_group_id" {
   description = "The OCID of an existing group to use. If provided, a new group will not be created."
   default     = null
 }
+
+variable "create_service_connector" {
+  type        = bool
+  description = "Whether to create a service connector"
+  default     = false
+}

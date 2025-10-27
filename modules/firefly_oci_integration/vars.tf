@@ -1,7 +1,7 @@
 variable "firefly_endpoint" {
   type        = string
   description = "The Firefly endpoint to register account management"
-  # default     = "https://prodapi.gofirefly.io/api"
+  default     = "https://prodapi.gofirefly.io/api"
 }
 
 variable "firefly_token" {
@@ -88,4 +88,22 @@ variable "auto_discover_enabled" {
   type        = bool
   description = "Whether auto discovery is enabled"
   default     = true
+}
+
+variable "event_driven_regions" {
+  type        = list(string)
+  description = "OCI regions for event-driven integration"
+  default     = []
+}
+
+variable "integration_session_id" {
+  type        = string
+  description = "Integration session ID"
+  default     = null
+}
+
+variable "skip_integration_request" {
+  type        = bool
+  description = "Skip the HTTP integration request (useful for destroy operations)"
+  default     = false
 }

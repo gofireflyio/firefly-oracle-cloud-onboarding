@@ -35,6 +35,8 @@ resource "oci_identity_policy" "firefly_auth_policy" {
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to read all-resources in tenancy",
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to manage serviceconnectors in compartment id ${var.tenancy_ocid}",
     "Endorse group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to use stream-push in tenancy Firefly where all { request.principal.type='serviceconnector', request.principal.compartment.id = '${var.tenancy_ocid}' }",
+    "Admit any-user of tenancy Firefly to read logging-family IN TENANCY WHERE ALL {request.principal.type = 'serviceconnector'}",
+    "Admit any-user of tenancy Firefly to read audit-events IN tenancy WHERE ALL {request.principal.type = 'serviceconnector'}"
   ]
   freeform_tags = local.common_tags
 }
@@ -50,5 +52,4 @@ resource "oci_identity_api_key" "firefly_user_api_key" {
   depends_on = [module.firefly_oci_integration]
   user_id = oci_identity_user.firefly_user.id
   key_value = module.firefly_oci_integration.public_key
-
 }

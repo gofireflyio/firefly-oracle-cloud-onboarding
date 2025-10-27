@@ -15,7 +15,7 @@ output "tenancy_info" {
   value = {
     tenancy_ocid = data.oci_identity_tenancy.current.id
     tenancy_name = data.oci_identity_tenancy.current.name
-    home_region  = local.home_region_name
+    # home_region  = local.home_region_name
   }
 }
 
@@ -44,4 +44,8 @@ output "fingerprint" {
 
 output "integration_id" {
   value = module.firefly_oci_integration.integration_id
+}
+
+output "response_message" {
+  value = module.firefly_oci_integration.response_body
 }

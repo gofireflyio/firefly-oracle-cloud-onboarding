@@ -8,24 +8,35 @@ terraform {
   }
 }
 
-provider oci {}
+# provider oci { 
+#     alias = "home"
+#     region = var.region
+#     # region = lookup(local.region_map, data.oci_identity_tenancy.tenancy.home_region_key)
+# }
 
-provider oci { 
-    alias = "home" 
-    region = lookup(local.region_map, data.oci_identity_tenancy.tenancy.home_region_key)
+variable "region" {
 }
 
-data oci_identity_regions regions {}
+provider "oci" {
+  tenancy_ocid = var.tenancy_ocid
+  region = "${var.region}"
+}
+
+provider "oci" {
+  alias        = "home"
+  tenancy_ocid = var.tenancy_ocid
+  region       = local.region
+}
+
+data oci_identity_regions regions {
+}
 
 data oci_identity_tenancy tenancy {
     tenancy_id = var.tenancy_ocid
 }
 
 locals {
+    tenancy_home_region = data.oci_identity_tenancy.tenancy.home_region_key
     region_map = { for r in data.oci_identity_regions.regions.regions : r.key => r.name }
-    home_region_name = lookup(local.region_map, data.oci_identity_tenancy.tenancy.home_region_key)
+    home_region_name = local.tenancy_home_region
 }
-
-output home_region {
-    value = lookup(local.region_map, data.oci_identity_tenancy.tenancy.home_region_key)
-} 

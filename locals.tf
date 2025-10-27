@@ -20,8 +20,8 @@ locals {
   user_name              = "firefly-svc"
   user_group_name        = "${local.user_name}-admin"
   user_group_policy_name = "${local.user_name}-policy"
-  firefly_sch_name            = "firefly-dynamic-group-connectorhubs"
-  firefly_policy_name         = "firefly-dynamic-group-policy"
+  firefly_sch_name            = "${var.prefix}firefly-dynamic-group-connectorhubs${var.suffix}"
+  firefly_policy_name         = "${var.prefix}firefly-dynamic-group-policy${var.suffix}"
   matching_domain_id     = [for k, v in data.oci_identity_domains_user.user_in_domain : k if v.emails != null][0]
   matching_domain = [
     for d in data.oci_identity_domains.all_domains.domains : d
@@ -65,10 +65,11 @@ locals {
   # Tenancy and compartment info
   tenancy_name = data.oci_identity_tenancy.current.name
   # compartment_name = data.oci_identity_compartment.current.name
-  compartment_id = var.compartment_id == null ? var.tenancy_ocid : var.compartment_id
+  compartment_id = var.tenancy_ocid
   
   # Availability domains
   availability_domains = data.oci_identity_availability_domains.ads.availability_domains
+  region = data.oci_identity_tenancy.current.home_region_key
   
   # Region and compartment configuration for ORM stacks
   # is_current_region_home_region = var.region == local.home_region_name

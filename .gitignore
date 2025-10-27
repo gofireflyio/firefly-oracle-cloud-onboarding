@@ -60,3 +60,5 @@ terraform.rc
 # Ignore any OS-specific files
 .DS_Store
 Thumbs.db
+
+terraform-firefly-oci-onboarding.zip

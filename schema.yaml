@@ -1,0 +1,197 @@
+# Title shown in Application Information tab.
+title: Firefly OCI Integration
+# Sub Title shown in Application Information tab.
+description: Setting up infrastructure for Firefly cloud governance integration with Oracle Cloud Infrastructure
+schemaVersion: 1.1.0
+version: 1.0
+locale: en
+
+variableGroups:
+  - title: "Tenancy Configuration"
+    variables:
+      - ${tenancy_ocid}
+      - ${region}
+      - ${compartment_id}
+      - ${user_ocid}
+    visible: false
+  - title: "Firefly Authentication"
+    variables:
+      - ${firefly_endpoint}
+      - ${firefly_access_key}
+      - ${firefly_secret_key}
+  - title: "Resource Configuration"
+    variables:
+      - ${prefix}
+      - ${suffix}
+      - ${tags}
+  - title: "Service Connector Options"
+    variables:
+      - ${create_service_connector}
+      - ${existing_log_group_id}
+      - ${existing_dynamic_group_id}
+      - ${dynamic_group_name}
+  - title: "Advanced Options"
+    variables:
+      - ${existing_user_id}
+      - ${existing_group_id}
+      - ${firefly_auth_policy}
+
+variables:
+  # Firefly Authentication
+  firefly_endpoint:
+    title: Firefly API Endpoint
+    type: string
+    description: |
+      The Firefly API endpoint URL. Use the default unless instructed otherwise by Firefly support.
+    required: false
+    default: "https://prodapi.firefly.ai/api"
+
+  firefly_access_key:
+    title: Firefly Access Key
+    type: string
+    description: |
+      Your Firefly authentication access key. This can be found in your Firefly account settings under API Keys.
+    required: true
+    sensitive: true
+    password: true
+
+  firefly_secret_key:
+    title: Firefly Secret Key
+    type: string
+    description: |
+      Your Firefly authentication secret key. This can be found in your Firefly account settings under API Keys.
+    required: true
+    sensitive: true
+    password: true
+    confirmation: true
+
+  # Resource Configuration
+  compartment_id:
+    title: Compartment
+    description: |
+      Select a Compartment where Firefly resources will be created.
+      <strong>(Recommended): If left blank, a new Compartment named 'Firefly' will be created.</strong>
+    type: oci:identity:compartment:id
+    required: false
+    default: null
+
+  prefix:
+    title: Resource Name Prefix
+    type: string
+    description: |
+      Optional prefix to add to all created resource names. Useful for organizing resources or avoiding naming conflicts.
+    required: false
+    default: ""
+
+  suffix:
+    title: Resource Name Suffix
+    type: string
+    description: |
+      Optional suffix to add to all created resource names. Useful for organizing resources or avoiding naming conflicts.
+    required: false
+    default: ""
+
+  tags:
+    title: Resource Tags
+    type: text
+    multiline: true
+    description: |
+      Optional tags to apply to all created resources. Enter in key=value format, one per line.
+      Example:
+      Environment=Production
+      Project=Firefly
+      Owner=CloudTeam
+    required: false
+    default: ""
+
+  # Service Connector Configuration
+  create_service_connector:
+    title: Create Service Connector
+    type: boolean
+    description: |
+      Whether to create a service connector for streaming OCI logs to Firefly.
+      <strong>Enable this if you want real-time log streaming capabilities.</strong>
+    required: false
+    default: false
+
+  existing_log_group_id:
+    title: Existing Log Group ID
+    type: string
+    description: |
+      OCID of an existing log group to use. If provided, a new log group will not be created.
+      Leave blank to create a new log group automatically.
+    required: false
+    default: ""
+    visible: ${create_service_connector}
+
+  existing_dynamic_group_id:
+    title: Existing Dynamic Group ID
+    type: string
+    description: |
+      OCID of an existing dynamic group to use for service connector permissions.
+      Leave blank to create a new dynamic group automatically.
+    required: false
+    default: ""
+    visible: ${create_service_connector}
+
+  dynamic_group_name:
+    title: Dynamic Group Name
+    type: string
+    description: |
+      Name for the dynamic group that will be created (if not using an existing one).
+    required: false
+    default: "firefly-dynamic-group"
+    visible: ${create_service_connector}
+
+  # Advanced Options
+  existing_user_id:
+    title: Existing User ID
+    type: string
+    description: |
+      OCID of an existing OCI user to use for Firefly authentication.
+      <strong>(Recommended): Leave blank to create a new user automatically.</strong>
+    required: false
+    default: null
+
+  existing_group_id:
+    title: Existing Group ID
+    type: string
+    description: |
+      OCID of an existing OCI group to use for Firefly permissions.
+      <strong>(Recommended): Leave blank to create a new group automatically.</strong>
+    required: false
+    default: null
+
+  firefly_auth_policy:
+    title: Firefly Auth Policy Name
+    type: string
+    description: |
+      Name for the IAM policy that will grant Firefly the necessary permissions.
+    required: false
+    default: "firefly-auth-policy"
+
+  # Hidden variables (automatically populated by ORM)
+  tenancy_ocid:
+    title: Tenancy OCID
+    type: string
+    description: "The OCID of the tenancy"
+    required: true
+
+
+  user_ocid:
+    title: Current User OCID
+    type: string
+    description: "The OCID of the current user"
+    required: false
+    default: ""
+
+outputs:
+  firefly_integration_status:
+    title: "Integration Status"
+    description: "Status of the Firefly OCI integration setup"
+    type: string
+
+  created_resources:
+    title: "Created Resources"
+    description: "Summary of resources created for Firefly integration"
+    type: string

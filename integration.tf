@@ -44,21 +44,22 @@ locals {
 
 # Firefly OCI Integration
 module "firefly_oci_integration" {
-  # count = var.trigger_integrations ? 1 : 0
 
   depends_on = [ oci_identity_user.firefly_user, data.http.firefly_login]
   source = "./modules/firefly_oci_integration"
-  
-  firefly_endpoint = var.firefly_endpoint
-  firefly_token    = local.token
-  tenancy_ocid     = var.tenancy_ocid
-  compartment_id   = local.compartment_id
-  region           = var.region
-  tenancy_name     = data.oci_identity_tenancy.current.name
-  user_ocid        = oci_identity_user.firefly_user.id
-  # prefix           = var.prefix
-  # suffix           = var.suffix
-  tags             = var.tags
+
+  firefly_endpoint     = var.firefly_endpoint
+  firefly_token        = local.token
+  tenancy_ocid         = var.tenancy_ocid
+  compartment_id       = local.compartment_id
+  region               = var.region
+  event_driven_regions = var.event_driven_regions
+  is_prod              = var.is_prod
+  tenancy_name         = data.oci_identity_tenancy.current.name
+  user_ocid            = oci_identity_user.firefly_user.id
+  integration_session_id = var.integrationSessionId
+  skip_integration_request = var.skip_integration_request
+  tags                 = var.tags
 }
 
 output "status_code" {

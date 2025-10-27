@@ -25,10 +25,17 @@ This Terraform module automates the complete integration of Firefly with Oracle 
 
 Before you begin, ensure you have the following:
 
-1. Terraform installed on your local machine
-2. OCI CLI installed and configured
-3. Necessary OCI credentials (see [Configuration Variables](#configuration-variables))
-4. Firefly access and secret keys
+1. **Terraform** (version >= 1.5.0) installed on your local machine
+2. **OCI CLI** installed and configured
+3. **OCI Credentials**:
+   - Tenancy OCID
+   - Current user OCID (required for identity domain lookup)
+   - User fingerprint and private key
+   - Appropriate permissions to create IAM resources in your tenancy
+4. **Firefly Credentials**:
+   - Firefly access key
+   - Firefly secret key
+5. **OCI Region** where you want to deploy the integration
 
 ## Required Providers
 
@@ -68,19 +75,25 @@ module "firefly_oci_integration" {
   firefly_secret_key     = var.firefly_secret_key
   
   # Optional variables with defaults
-  compartment_id         = var.compartment_id  # If null, uses tenancy root compartment
-  user_ocid             = var.user_ocid        # Optional - for existing user
-  region                = var.region           # Default: il-jerusalem-1
-  prefix                = var.prefix           # Default: ""
-  suffix                = var.suffix           # Default: ""
-  tags                  = var.tags             # Default: {}
-  firefly_endpoint      = var.firefly_endpoint # Default: https://api-env2.dev.firefly.ai/api
+  compartment_id            = var.compartment_id       # If null, uses tenancy root compartment
+  current_user_ocid         = var.current_user_ocid    # Required - current user OCID
+  region                    = var.region               # Required - no default
+  prefix                    = var.prefix               # Default: ""
+  suffix                    = var.suffix               # Default: ""
+  tags                      = var.tags                 # Default: {}
+  firefly_endpoint          = var.firefly_endpoint     # Default: https://prodapi.firefly.ai/api
   
   # Optional - for using existing resources
-  existing_user_id         = var.existing_user_id      # Use existing OCI user
-  existing_group_id        = var.existing_group_id     # Use existing OCI group  
-  existing_log_group_id    = var.existing_log_group_id # Use existing log group
+  existing_user_id          = var.existing_user_id         # Use existing OCI user
+  existing_group_id         = var.existing_group_id        # Use existing OCI group  
+  existing_log_group_id     = var.existing_log_group_id    # Use existing log group
   existing_dynamic_group_id = var.existing_dynamic_group_id # Use existing dynamic group
+  
+  # Optional - service connector and event-driven configuration
+  create_service_connector  = var.create_service_connector # Default: false
+  event_driven_regions      = var.event_driven_regions     # Default: []
+  is_prod                   = var.is_prod                  # Default: true
+  integrationSessionId      = var.integrationSessionId     # Default: null
 }
 ```
 
@@ -92,14 +105,15 @@ The Terraform module will create the following OCI resources:
 - **OCI IAM Group**: `firefly-svc-admin` - Group for managing Firefly user permissions  
 - **OCI IAM User Group Membership**: Adds the Firefly user to the admin group
 - **OCI API Key**: API key pair for the Firefly service user
-- **OCI IAM Dynamic Group**: `firefly-dynamic-group` - For service connector permissions
+- **OCI IAM Dynamic Group**: `firefly-dynamic-group` - For service connector permissions (created only if `existing_dynamic_group_id` is not provided)
 - **OCI IAM Policy**: `firefly-svc-policy` - Comprehensive permissions for Firefly access
-- **OCI Service Connector Hub**: `firefly-audit-connector` - Routes audit logs to Firefly's stream
+- **OCI Service Connector Hub**: `firefly-audit-connector` - Routes audit logs to Firefly's stream (created only if `create_service_connector` is set to `true`)
 - **Firefly Integration**: Registers the OCI tenancy with Firefly via API calls
 
 ## Deploy to OCI
 
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/gofireflyio/firefly-oracle-cloud-onboarding/releases/latest/download/terraform-firefly-oci-onboarding.zip)
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create
+?zipUrl=https://github.com/gofireflyio/firefly-oracle-cloud-onboarding/releases/download/v1.0.1/terraform-firefly-oci-onboarding.zip)
 
 ### Optional Resources
 If you don't provide existing resource IDs, the module will create new ones. You can reuse existing resources by providing their OCIDs via variables.
@@ -117,18 +131,22 @@ If you don't provide existing resource IDs, the module will create new ones. You
 | Variable | Description | Type | Default |
 |----------|-------------|------|---------|
 | `compartment_id` | OCI Compartment OCID. If null, uses tenancy root compartment | string | null |
-| `user_ocid` | OCI User OCID for existing user | string | "" |
-| `region` | OCI region for resource deployment | string | "il-jerusalem-1" |
+| `current_user_ocid` | OCI User OCID for the current user (required for domain lookup) | string | (required) |
+| `region` | OCI region for resource deployment | string | (required) |
 | `prefix` | Prefix for resource naming | string | "" |
 | `suffix` | Suffix for resource naming | string | "" |
 | `tags` | Tags to apply to created resources | map(string) | {} |
-| `firefly_endpoint` | Firefly API endpoint | string | "https://api-env2.dev.firefly.ai/api" |
+| `firefly_endpoint` | Firefly API endpoint | string | "https://prodapi.firefly.ai/api" |
 | `existing_user_id` | OCID of existing user to use instead of creating new one | string | null |
 | `existing_group_id` | OCID of existing group to use instead of creating new one | string | null |
 | `existing_log_group_id` | OCID of existing log group to use | string | "" |
 | `existing_dynamic_group_id` | OCID of existing dynamic group to use | string | "" |
 | `dynamic_group_name` | Name for the dynamic group | string | "firefly-dynamic-group" |
 | `firefly_auth_policy` | Name for the auth policy | string | "firefly-auth-policy" |
+| `create_service_connector` | Whether to create a service connector for audit log streaming | bool | false |
+| `event_driven_regions` | List of OCI regions for event-driven integration | list(string) | [] |
+| `is_prod` | Whether this is a production environment | bool | true |
+| `integrationSessionId` | Integration session ID for tracking | string | null |
 
 **Security Note**: Store your Firefly credentials securely using environment variables or a `terraform.tfvars` file that is not committed to version control.
 
@@ -139,8 +157,7 @@ The module provides the following outputs:
 | Output | Description |
 |--------|-------------|
 | `dynamic_group_id` | The OCID of the Firefly dynamic group |
-| `service_connector_id` | The OCID of the Firefly service connector |
-| `tenancy_info` | Information about the OCI tenancy (OCID, name, home region) |
+| `tenancy_info` | Information about the OCI tenancy (OCID, name) |
 | `compartment_info` | Information about the OCI compartment |
 | `firefly_integration_config` | Firefly user OCID for the integration |
 | `public_key` | Public key for the created API key |
@@ -163,16 +180,16 @@ The module uses several OCI data sources to gather information about your enviro
 
 ## IAM Policies Created
 
-The module creates a comprehensive IAM policy (`firefly-svc-policy`) with the following permissions:
+The module creates a comprehensive IAM policy (`firefly-svc-policy`) with the following specific statements:
 
-1. **Tenancy Cross-Reference**: Defines Firefly tenancy for cross-tenancy access
-2. **Global Read Access**: `Allow group to read all-resources in tenancy`
-3. **Service Connector Management**: `Allow group to manage serviceconnectors in compartment`
-4. **Stream Push Permissions**: Endorses the group to push to streams in the Firefly tenancy for service connectors
+1. **Tenancy Cross-Reference**: `Define tenancy Firefly as ocid1.tenancy.oc1..aaaaaaaahxrxe37ndpd3xidrt4laffdtxhdaq4srccux3cumrugervil4inq` - Defines Firefly tenancy for cross-tenancy access
+2. **Global Read Access**: `Allow group to read all-resources in tenancy` - Enables Firefly to discover and inventory all OCI resources
+3. **Service Connector Management**: `Allow group to manage serviceconnectors in compartment` - Allows creation and management of Service Connector Hub resources
+4. **Stream Push Permissions**: `Endorse group to use stream-push in tenancy Firefly` - Enables the group to push audit logs to Firefly's managed streams (with conditions for service connectors)
 
 These policies enable Firefly to:
 - Discover and inventory all OCI resources in your tenancy
-- Create and manage Service Connector Hub resources for audit log streaming
+- Create and manage Service Connector Hub resources for audit log streaming (when enabled)
 - Push audit logs to Firefly's managed streams for processing and analysis
 
 ## Audit Logging
@@ -184,13 +201,15 @@ The module automatically configures audit log streaming using OCI's built-in aud
 
 ## Service Connector Hub
 
-The Service Connector Hub (`firefly-audit-connector`) is configured to:
+The Service Connector Hub (`firefly-audit-connector`) is an optional component that can be enabled by setting `create_service_connector = true`. When enabled, it is configured to:
 - **Source**: OCI Audit Log Group (`_Audit_Include_Subcompartment`)
 - **Target**: Firefly-managed OCI Stream (automatically determined by region)
 - **Scope**: Compartment-level with subcompartment inclusion
 - **Function**: Real-time streaming of audit events to Firefly for analysis and monitoring
 
 The target stream is automatically selected based on your OCI region through Firefly's API.
+
+**Note**: By default, the service connector is **not created** (`create_service_connector = false`). Set this variable to `true` if you want to enable audit log streaming.
 
 ## Contributing
 

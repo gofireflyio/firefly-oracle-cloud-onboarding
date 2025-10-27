@@ -1,9 +1,10 @@
 variable "firefly_endpoint" {
   type    = string
-  default = "https://api-env2.dev.firefly.ai/api"
+  default = "https://prodapi.firefly.ai/api"
 }
 
 variable "firefly_access_key" {
+  sensitive   = true
   type        = string
   description = "Your authentication access_key"
   validation {
@@ -13,6 +14,7 @@ variable "firefly_access_key" {
 }
 
 variable "firefly_secret_key" {
+  sensitive   = true
   type        = string
   description = "Your authentication secret_key"
   validation {
@@ -37,16 +39,15 @@ variable "compartment_id" {
 }
 
 
-variable "user_ocid" {
+variable "current_user_ocid" {
   type        = string
   description = "OCI User OCID (optional)"
-  default     = ""
 }
 
-variable "region" {
-  type    = string
-  default = "il-jerusalem-1"
-}
+# variable "region" {
+#   type        = string
+#   description = "OCI Region as documented at https://docs.cloud.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm"
+# }
 
 variable "prefix" {
   type    = string
@@ -101,5 +102,30 @@ variable "existing_group_id" {
 variable "create_service_connector" {
   type        = bool
   description = "Whether to create a service connector"
+  default     = false
+}
+
+variable "event_driven_regions" {
+  type        = list(string)
+  description = "OCI regions for event-driven integration"
+  default     = []
+}
+
+
+variable "is_prod" {
+  type        = bool
+  description = "Whether this is a production environment"
+  default     = true
+}
+
+variable "integrationSessionId" {
+  type        = string
+  description = "Integration session ID"
+  default     = null
+}
+
+variable "skip_integration_request" {
+  type        = bool
+  description = "Skip the HTTP integration request (useful for destroy operations)"
   default     = false
 }

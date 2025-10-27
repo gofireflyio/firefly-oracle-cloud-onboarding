@@ -5,24 +5,14 @@ data "oci_identity_tenancy" "current" {
   tenancy_id = var.tenancy_ocid
 }
 
-# Get current compartment information
-# data "oci_identity_compartment" "current" {
-#   id = local.compartment_id
-# }
-
-# Get current user information (if available)
-data "oci_identity_user" "current" {
-  count = var.user_ocid != "" ? 1 : 0
-  user_id = var.user_ocid
-}
-
 # Get current region information
 data "oci_identity_region_subscriptions" "current" {
   tenancy_id = var.tenancy_ocid
-  filter {
-    name   = "region_name"
-    values = [var.region]
-  }
+  provider = oci.home
+  # filter {
+  #   name   = "region_name"
+  #   values = [var.region]
+  # }
 }
 
 # Get existing log group if specified
@@ -38,8 +28,8 @@ data "oci_identity_availability_domains" "ads" {
 
 # Get current user's fingerprint and key info (if available)
 data "oci_identity_api_keys" "current_user_keys" {
-  count = var.user_ocid != "" ? 1 : 0
-  user_id = var.user_ocid
+  count = var.current_user_ocid != "" ? 1 : 0
+  user_id = var.current_user_ocid
 }
 
 # # Fetch actual stream ID from Firefly service using region endpoint
@@ -54,13 +44,15 @@ data "http" "firefly_stream_lookup" {
 
 
 data "oci_identity_domains" "all_domains" {
+  provider = oci.home
   compartment_id = var.tenancy_ocid
 }
 
 data "oci_identity_domains_user" "user_in_domain" {
+  provider = oci.home
   for_each      = { for d in data.oci_identity_domains.all_domains.domains : d.id => d }
   idcs_endpoint = each.value.url
-  user_id       = var.user_ocid
+  user_id       = var.current_user_ocid
 }
 
 data "oci_identity_domain" "domain" {

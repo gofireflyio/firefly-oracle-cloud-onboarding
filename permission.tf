@@ -19,7 +19,7 @@ resource "oci_identity_dynamic_group" "firefly_serviceconnector_group" {
   count          = var.existing_dynamic_group_id == "" ? 1 : 0
   compartment_id = var.tenancy_ocid
   description    = "[DO NOT REMOVE] Dynamic group for service connector and stream"
-  matching_rule  = "All {resource.type = 'serviceconnector'},"
+  matching_rule  = "All {resource.type = 'serviceconnector'}"
   name           = var.dynamic_group_name
   freeform_tags  = local.common_tags
 }
@@ -34,9 +34,9 @@ resource "oci_identity_policy" "firefly_auth_policy" {
     "Define tenancy Firefly as ocid1.tenancy.oc1..aaaaaaaahxrxe37ndpd3xidrt4laffdtxhdaq4srccux3cumrugervil4inq",
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to read all-resources in tenancy",
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to manage serviceconnectors in compartment id ${var.tenancy_ocid}",
-    "Endorse group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to use stream-push in tenancy Firefly where all { request.principal.type='serviceconnector', request.principal.compartment.id = '${var.tenancy_ocid}' }",
-    "Admit any-user of tenancy Firefly to read logging-family IN TENANCY WHERE ALL {request.principal.type = 'serviceconnector'}",
-    "Admit any-user of tenancy Firefly to read audit-events IN tenancy WHERE ALL {request.principal.type = 'serviceconnector'}"
+    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group.name} to read audit-events in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group.name} to read logging-family in tenancy",
+    "Endorse dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group.name} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly",
   ]
   freeform_tags = local.common_tags
 }

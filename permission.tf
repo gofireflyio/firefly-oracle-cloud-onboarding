@@ -34,9 +34,9 @@ resource "oci_identity_policy" "firefly_auth_policy" {
     "Define tenancy Firefly as ocid1.tenancy.oc1..aaaaaaaahxrxe37ndpd3xidrt4laffdtxhdaq4srccux3cumrugervil4inq",
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to read all-resources in tenancy",
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to manage serviceconnectors in compartment id ${var.tenancy_ocid}",
-    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group.name} to read audit-events in tenancy",
-    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group.name} to read logging-family in tenancy",
-    "Endorse dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group.name} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly",
+    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to read audit-events in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to read logging-family in tenancy",
+    "Endorse dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly",
   ]
   freeform_tags = local.common_tags
 }

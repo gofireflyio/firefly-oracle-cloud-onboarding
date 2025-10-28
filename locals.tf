@@ -1,20 +1,3 @@
-# data "http" "firefly_login" {
-#   count  = var.firefly_secret_key != "" ? 1 : 0
-#   url    = "${var.firefly_endpoint}/account/access_keys/login"
-#   method = "POST"
-#   request_headers = {
-#     Content-Type = "application/json"
-#   }
-#   request_body = jsonencode({ "accessKey" = var.firefly_access_key, "secretKey" = var.firefly_secret_key })
-# }
-
-# locals {
-#   response_obj = try(jsondecode(data.http.firefly_login[0].response_body), {})
-#   firefly_token = lookup(local.response_obj, "access_token", "error")
-# }
-
-# # Fetch actual stream ID from Firefly service using region endpoint
-
 #Auth Variables
 locals {
   user_name              = "firefly-svc"
@@ -70,23 +53,6 @@ locals {
   # Availability domains
   availability_domains = data.oci_identity_availability_domains.ads.availability_domains
   region = data.oci_identity_tenancy.current.home_region_key
-  
-  # Region and compartment configuration for ORM stacks
-  # is_current_region_home_region = var.region == local.home_region_name
-  # home_region_name = data.oci_identity_region_subscriptions.current.region_subscriptions[0].region_name
-  
-  # # Target regions for regional stacks (all subscribed regions)
-  # target_regions_for_stacks = {
-  #   for region in data.oci_identity_region_subscriptions.current.region_subscriptions : 
-  #   region.region_name => {
-  #     region_key = region.region_key
-  #     region_name = region.region_name
-  #     is_home_region = region.is_home_region
-  #   }
-  # }
-  
-  # New compartment name for Firefly resources
-  new_compartment_name = "firefly"
   
   firefly_stream_ids = try(jsondecode(data.http.firefly_stream_lookup.response_body), {})
   # Lookup actual stream ID from Firefly's service

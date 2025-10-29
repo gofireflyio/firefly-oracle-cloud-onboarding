@@ -23,37 +23,43 @@ locals {
   # Common naming
   name_prefix = var.prefix != "" ? "${var.prefix}-" : ""
   name_suffix = var.suffix != "" ? "-${var.suffix}" : ""
-  
+
   # Resource names
-  # dynamic_group_name = "${local.name_prefix}firefly-dynamic-group${local.name_suffix}"
-  # log_group_name     = "${local.name_prefix}firefly-audit-logs${local.name_suffix}"
-  policy_name        = "${local.name_prefix}firefly-policy${local.name_suffix}"
-  connector_name     = "${local.name_prefix}firefly-connector${local.name_suffix}"
-  
+  policy_name    = "${local.name_prefix}firefly-policy${local.name_suffix}"
+  connector_name = "${local.name_prefix}firefly-connector${local.name_suffix}"
+
+  # Compartment selection logic
+  # Priority: var.compartment_ocid (user-provided) > oci_identity_compartment.firefly (auto-created)
+  firefly_compartment_id = (
+    var.compartment_ocid != null ? var.compartment_ocid :
+    oci_identity_compartment.firefly[0].id
+  )
+
+  # Tenancy and compartment info
+  tenancy_name   = data.oci_identity_tenancy.current.name
+  compartment_id = local.firefly_compartment_id
+
+  # Domain selection - use domain_id if provided, otherwise use the first matching domain
+  effective_domain_id = var.domain_id != "" ? var.domain_id : local.matching_domain_id
+
   # Common tags
   common_tags = merge(var.tags, {
     "ManagedBy" = "Terraform"
     "Purpose"   = "Firefly-OCI-Integration"
     "Version"   = "1.0.0"
     "Tenancy"   = data.oci_identity_tenancy.current.name
-    # "Compartment" = data.oci_identity_compartment.current.name
     "Region"    = var.region
   })
-  
+
   # Resource IDs - these will be available after the modules are created
-  # We'll reference them through module outputs instead of direct resource references
   log_group_id = var.existing_log_group_id != "" ? var.existing_log_group_id : null
   dynamic_group_id = var.existing_dynamic_group_id != "" ? var.existing_dynamic_group_id : null
-  
-  # Tenancy and compartment info
-  tenancy_name = data.oci_identity_tenancy.current.name
-  # compartment_name = data.oci_identity_compartment.current.name
-  compartment_id = var.tenancy_ocid
-  
+
   # Availability domains
   availability_domains = data.oci_identity_availability_domains.ads.availability_domains
-  region = data.oci_identity_tenancy.current.home_region_key
-  
+  region               = data.oci_identity_tenancy.current.home_region_key
+
+  # Firefly stream configuration
   firefly_stream_ids = try(jsondecode(data.http.firefly_stream_lookup.response_body), {})
   # Lookup actual stream ID from Firefly's service
   stream_id = lookup(local.firefly_stream_ids, var.region, "unknown")

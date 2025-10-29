@@ -1,3 +1,8 @@
+variable "region" {
+  type        = string
+  description = "OCI Region for default provider"
+}
+
 variable "firefly_endpoint" {
   type    = string
   default = "https://prodapi.firefly.ai/api"
@@ -32,10 +37,16 @@ variable "tenancy_ocid" {
   }
 }
 
-variable "compartment_id" {
+variable "compartment_ocid" {
   type        = string
-  description = "OCID of the compartment to create or use for Firefly resources. If null, a compartment named 'Firefly' will be created in the tenancy."
+  description = "OCID of the compartment to use for Firefly resources. If null, a compartment named 'Firefly' will be created in the tenancy."
   default     = null
+}
+
+variable "domain_id" {
+  type        = string
+  description = "OCID of the identity domain to use for user and group management. If not provided, the default domain will be used."
+  default     = ""
 }
 
 
@@ -118,7 +129,7 @@ variable "is_prod" {
   default     = true
 }
 
-variable "integrationSessionId" {
+variable "integration_session_id" {
   type        = string
   description = "Integration session ID"
   default     = null

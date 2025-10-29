@@ -1,13 +1,30 @@
+output "firefly_compartment_id" {
+  description = "The OCID of the Firefly compartment (auto-created or user-provided)"
+  value       = local.firefly_compartment_id
+}
+
+output "firefly_compartment_created" {
+  description = "Whether a new Firefly compartment was created"
+  value       = length(oci_identity_compartment.firefly) > 0
+}
+
 output "dynamic_group_id" {
   description = "The OCID of the Firefly dynamic group"
   value       = local.dynamic_group_id
 }
 
 
-# output "service_connector_id" {
-#   description = "The OCID of the Firefly service connector"
-#   value       = module.service_connector[0].service_connector_id
-# }
+output "service_connectors_by_region" {
+  description = "Service Connectors created per region"
+  value = {
+    for region, module_data in module.service_connector_by_region :
+    region => {
+      id           = module_data.service_connector_id
+      display_name = module_data.display_name
+      region       = region
+    }
+  }
+}
 
 
 output "tenancy_info" {

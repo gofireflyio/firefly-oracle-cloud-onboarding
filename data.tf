@@ -8,11 +8,13 @@ data "oci_identity_tenancy" "current" {
 # Get current region information
 data "oci_identity_region_subscriptions" "current" {
   tenancy_id = var.tenancy_ocid
-  provider = oci.home
-  # filter {
-  #   name   = "region_name"
-  #   values = [var.region]
-  # }
+  provider   = oci.home
+}
+
+# Get all subscribed regions for multi-region service connector deployment
+data "oci_identity_region_subscriptions" "all_regions" {
+  tenancy_id = var.tenancy_ocid
+  provider   = oci.home
 }
 
 # Get existing log group if specified

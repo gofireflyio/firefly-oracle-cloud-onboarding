@@ -10,14 +10,19 @@ This Terraform module automates the complete integration of Firefly with Oracle 
   - [Table of Contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
   - [Required Providers](#required-providers)
+  - [Quick Start](#quick-start)
   - [Installation](#installation)
   - [Created Resources](#created-resources)
   - [Configuration Variables](#configuration-variables)
+  - [Using terraform.tfvars](#using-terraformtfvars)
+  - [Compartment Management](#compartment-management)
+  - [Integration Request Handling](#integration-request-handling)
   - [Outputs](#outputs)
   - [Data Sources](#data-sources)
   - [IAM Policies Created](#iam-policies-created)
-  - [Audit Logging](#audit-logging)
   - [Service Connector Hub](#service-connector-hub)
+  - [Event Filtering](#event-filtering)
+  - [Troubleshooting](#troubleshooting)
   - [Contributing](#contributing)
   - [Support](#support)
 
@@ -55,7 +60,34 @@ terraform {
 
 Make sure to include this provider configuration in your Terraform files before using the Firefly OCI module.
 
+## Quick Start
+
+1. **Clone or download this repository** to your local machine
+2. **Create a `terraform.tfvars` file** with your credentials (see [Using terraform.tfvars](#using-terraformtfvars) below)
+3. **Run the following commands**:
+
+```bash
+# Initialize Terraform
+terraform init
+
+# Preview the changes
+terraform plan
+
+# Create the resources (first apply with integration API call)
+terraform apply
+
+# For subsequent applies, set skip_integration_request = true
+terraform apply -var skip_integration_request=true
+
+# For destroy operations, also set skip_integration_request = true
+terraform destroy -var skip_integration_request=true
+```
+
 ## Installation
+
+### Direct Deployment
+
+If you're using this module directly in your Terraform configuration:
 
 ```hcl
 provider "oci" {
@@ -124,31 +156,141 @@ If you don't provide existing resource IDs, the module will create new ones. You
 | Variable | Description | Type |
 |----------|-------------|------|
 | `tenancy_ocid` | OCI Tenancy OCID | string |
+| `region` | OCI region for resource deployment | string |
+| `current_user_ocid` | OCI User OCID for the current user (required for identity domain lookup) | string |
 | `firefly_access_key` | Firefly access key for authentication | string |
 | `firefly_secret_key` | Firefly secret key for authentication | string |
 
-### Optional Variables
+### Optional Variables - Compartment Management
 | Variable | Description | Type | Default |
 |----------|-------------|------|---------|
-| `compartment_id` | OCI Compartment OCID. If null, uses tenancy root compartment | string | null |
-| `current_user_ocid` | OCI User OCID for the current user (required for domain lookup) | string | (required) |
-| `region` | OCI region for resource deployment | string | (required) |
+| `compartment_ocid` | OCID of the compartment to use for Firefly resources. If null, a compartment named 'Firefly' will be auto-created in the tenancy | string | null |
+| `domain_id` | OCID of the identity domain to use for user and group management. If not provided, the default domain will be used | string | "" |
+
+### Optional Variables - API Configuration
+| Variable | Description | Type | Default |
+|----------|-------------|------|---------|
+| `firefly_endpoint` | Firefly API endpoint | string | "https://prodapi.firefly.ai/api" |
+| `integration_session_id` | Integration session ID for tracking | string | null |
+| `skip_integration_request` | Skip the HTTP integration request (useful for destroy operations and subsequent applies) | bool | false |
+
+### Optional Variables - Naming and Tagging
+| Variable | Description | Type | Default |
+|----------|-------------|------|---------|
 | `prefix` | Prefix for resource naming | string | "" |
 | `suffix` | Suffix for resource naming | string | "" |
 | `tags` | Tags to apply to created resources | map(string) | {} |
-| `firefly_endpoint` | Firefly API endpoint | string | "https://prodapi.firefly.ai/api" |
+| `dynamic_group_name` | Name for the dynamic group | string | "firefly-dynamic-group" |
+| `firefly_auth_policy` | Name for the auth policy | string | "firefly-auth-policy" |
+
+### Optional Variables - Resource Reuse
+| Variable | Description | Type | Default |
+|----------|-------------|------|---------|
 | `existing_user_id` | OCID of existing user to use instead of creating new one | string | null |
 | `existing_group_id` | OCID of existing group to use instead of creating new one | string | null |
 | `existing_log_group_id` | OCID of existing log group to use | string | "" |
 | `existing_dynamic_group_id` | OCID of existing dynamic group to use | string | "" |
-| `dynamic_group_name` | Name for the dynamic group | string | "firefly-dynamic-group" |
-| `firefly_auth_policy` | Name for the auth policy | string | "firefly-auth-policy" |
+
+### Optional Variables - Service Connector and Event-Driven
+| Variable | Description | Type | Default |
+|----------|-------------|------|---------|
 | `create_service_connector` | Whether to create a service connector for audit log streaming | bool | false |
-| `event_driven_regions` | List of OCI regions for event-driven integration | list(string) | [] |
+| `event_driven_regions` | List of OCI regions for event-driven integration (service connectors will be created in each region) | list(string) | [] |
 | `is_prod` | Whether this is a production environment | bool | true |
-| `integrationSessionId` | Integration session ID for tracking | string | null |
 
 **Security Note**: Store your Firefly credentials securely using environment variables or a `terraform.tfvars` file that is not committed to version control.
+
+## Using terraform.tfvars
+
+Create a `terraform.tfvars` file in the same directory as your Terraform configuration with the following structure:
+
+```hcl
+# Required credentials
+firefly_access_key = "your_firefly_access_key_here"
+firefly_secret_key = "your_firefly_secret_key_here"
+
+# Required OCI details
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaaxxx..."
+current_user_ocid = "ocid1.user.oc1..aaaaaaaaxxx..."
+region           = "eu-frankfurt-1"  # or your preferred OCI region
+
+# Optional: Specify compartment and domain
+# compartment_ocid = "ocid1.compartment.oc1..aaaaaaaaxxx..."  # Leave null to auto-create Firefly compartment
+# domain_id = "ocid1.domain.oc1..aaaaaaaaxxx..."               # Leave blank to use default domain
+
+# Optional: Configure service connectors
+create_service_connector = true
+event_driven_regions = ["eu-frankfurt-1", "us-phoenix-1"]
+
+# Optional: Add custom tags
+tags = {
+  Environment = "production"
+  Owner       = "platform-team"
+  CostCenter  = "engineering"
+}
+```
+
+**⚠️ Important**: Add `terraform.tfvars` to your `.gitignore` file to prevent accidental credential exposure:
+
+```bash
+echo "terraform.tfvars" >> .gitignore
+```
+
+## Compartment Management
+
+The Firefly OCI integration uses an intelligent compartment selection strategy:
+
+### Compartment Selection Priority
+
+1. **User-Provided Compartment** (via `compartment_ocid` variable): If you specify a compartment OCID, all Firefly application resources will be created in that compartment
+2. **Auto-Created Firefly Compartment** (default): If `compartment_ocid` is null (not provided), the module automatically creates a new compartment named "Firefly" in your tenancy root
+
+### Important Notes
+
+- **Identity Resources** (users, groups, policies, dynamic groups) are ALWAYS created in the root tenancy, regardless of the `compartment_ocid` setting. This is an OCI requirement.
+- **Application Resources** (service connectors, audit log configurations) are created in the specified or auto-created Firefly compartment
+- To use an existing compartment, provide its OCID in `terraform.tfvars`:
+  ```hcl
+  compartment_ocid = "ocid1.compartment.oc1..aaaaaaaaxxx..."
+  ```
+
+## Integration Request Handling
+
+The Firefly integration module makes an HTTP request to the Firefly API to register your OCI tenancy. This request happens during `terraform apply` and returns the API key details needed for authentication.
+
+### Managing Integration Requests
+
+**First Apply (Initial Setup)**:
+```bash
+# Leave skip_integration_request at default (false) to make the API call
+terraform apply
+```
+
+**Subsequent Applies**:
+```bash
+# Set skip_integration_request = true to skip the API call and avoid recreating API keys
+terraform apply -var skip_integration_request=true
+```
+
+**Destroy Operations**:
+```bash
+# Set skip_integration_request = true to skip the API call during destruction
+terraform destroy -var skip_integration_request=true
+```
+
+### Why Skip Integration Request?
+
+- **Avoid Duplicate API Keys**: The Firefly API returns a public key that is uploaded to OCI. On subsequent applies, if you don't skip, it tries to create duplicate API keys
+- **Faster Operations**: Skipping the API call reduces apply time for updates
+- **Clean Destruction**: During destroy, you don't need to call the Firefly API again
+
+### Troubleshooting Integration Errors
+
+If you encounter "key must not be empty" errors:
+1. Verify your Firefly credentials are correct
+2. Check network connectivity to `https://prodapi.firefly.ai/api`
+3. Review the Firefly API response: Check `module.firefly_oci_integration.response_body` output
+4. For subsequent operations, always set `skip_integration_request = true`
 
 ## Outputs
 
@@ -156,15 +298,18 @@ The module provides the following outputs:
 
 | Output | Description |
 |--------|-------------|
+| `firefly_compartment_id` | The OCID of the Firefly compartment (auto-created or user-provided) |
+| `firefly_compartment_created` | Whether a new Firefly compartment was created |
 | `dynamic_group_id` | The OCID of the Firefly dynamic group |
 | `tenancy_info` | Information about the OCI tenancy (OCID, name) |
-| `compartment_info` | Information about the OCI compartment |
+| `compartment_info` | Information about the OCI compartment used for Firefly resources |
 | `firefly_integration_config` | Firefly user OCID for the integration |
 | `public_key` | Public key for the created API key |
 | `fingerprint` | Fingerprint of the created API key |
 | `integration_id` | Firefly integration ID |
 | `status_code` | Status code from Firefly API integration |
 | `response_body` | Response body from Firefly API integration |
+| `service_connectors_by_region` | Service Connectors created per region (when `create_service_connector = true`) |
 
 ## Data Sources
 
@@ -201,15 +346,101 @@ The module automatically configures audit log streaming using OCI's built-in aud
 
 ## Service Connector Hub
 
-The Service Connector Hub (`firefly-audit-connector`) is an optional component that can be enabled by setting `create_service_connector = true`. When enabled, it is configured to:
-- **Source**: OCI Audit Log Group (`_Audit_Include_Subcompartment`)
-- **Target**: Firefly-managed OCI Stream (automatically determined by region)
-- **Scope**: Compartment-level with subcompartment inclusion
-- **Function**: Real-time streaming of audit events to Firefly for analysis and monitoring
+The Service Connector Hub is an optional component that can be enabled by setting `create_service_connector = true`. When enabled, it creates service connectors in one or more OCI regions as specified by `event_driven_regions`.
 
-The target stream is automatically selected based on your OCI region through Firefly's API.
+### Service Connector Configuration
+
+Each service connector is configured as follows:
+- **Source**: OCI Audit Log Group (`_Audit_Include_Subcompartment`) - captures all audit events
+- **Task**: LogRule filter with comprehensive OCI event filtering
+- **Target**: Firefly-managed OCI Stream (automatically determined by region via Firefly API)
+- **Scope**: Compartment-level with subcompartment inclusion
+- **Function**: Real-time streaming of filtered audit events to Firefly for analysis and monitoring
+
+### Multi-Region Deployment
+
+To enable service connectors in multiple regions:
+
+```hcl
+create_service_connector = true
+event_driven_regions = ["eu-frankfurt-1", "us-phoenix-1", "eu-amsterdam-1"]
+```
+
+This will create one service connector per specified region, each with region-specific naming and configuration.
+
+### Automatic Target Stream Selection
+
+The target stream is automatically selected based on your OCI region through Firefly's API:
+1. The integration module queries Firefly API for available stream IDs per region
+2. Service connectors are created with the appropriate stream ID for each region
+3. Audit events flow directly to Firefly's regional streams for processing
 
 **Note**: By default, the service connector is **not created** (`create_service_connector = false`). Set this variable to `true` if you want to enable audit log streaming.
+
+## Event Filtering
+
+Service Connectors are configured with comprehensive OCI event filtering to capture security and operational events. The filter includes 50+ OCI events organized by category:
+
+### Event Categories Included
+
+- **Object Storage**: CreateBucket, UpdateBucket, DeleteBucket, etc.
+- **Identity & Access Management**: CreateUser, UpdateUser, CreateGroup, CreatePolicy, etc.
+- **Compute**: LaunchInstance, TerminateInstance, UpdateInstance, etc.
+- **Database**: CreateDbSystem, DeleteDbSystem, UpdateDbSystem, etc.
+- **Networking**: CreateVcn, UpdateSecurityList, CreateNetworkSecurityGroup, etc.
+- **Storage**: CreateBlockchainPlatform, DeleteBlockchainPlatform, etc.
+- **Security**: UpdateSecurityList, CreateNetworkSecurityGroup, etc.
+
+The complete list of filtered events is dynamically configured in the service connector's LogRule task condition, ensuring all critical OCI operations are captured and streamed to Firefly for analysis.
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### Issue: "key must not be empty" error during terraform apply
+
+**Cause**: The Firefly integration API didn't return a public key
+**Solutions**:
+1. Verify Firefly credentials are correct in `terraform.tfvars`
+2. Check network connectivity to `https://prodapi.firefly.ai/api`
+3. Review the error response: Check the `module.firefly_oci_integration.response_body` output
+4. For subsequent applies, always set `skip_integration_request = true`
+
+#### Issue: "Tenant id is not equal to compartment id" error
+
+**Cause**: Attempting to create OCI Identity resources (users, groups, policies) in a sub-compartment
+**Solution**: This is correctly handled - Identity resources are created in the root tenancy, while application resources are created in the Firefly compartment
+
+#### Issue: "Dynamic group can only be created in the tenancy compartment" error
+
+**Cause**: Same as above
+**Solution**: This is correctly handled in the current configuration
+
+#### Issue: Service connector not receiving audit events
+
+**Cause**: Multiple possible causes
+**Solutions**:
+1. Verify the dynamic group matching rule is correct: `All {resource.type = 'serviceconnector'}`
+2. Ensure the service connector has proper permissions (check IAM policies)
+3. Verify the audit log group is properly configured
+4. Check that events are actually being generated in the specified compartment
+5. Review OCI Logging service for any configuration issues
+
+#### Issue: Terraform plan/apply is slow
+
+**Cause**: Integration API calls or data source queries
+**Solutions**:
+1. Use `skip_integration_request = true` for subsequent applies
+2. Reduce the number of regions in `event_driven_regions` if not needed
+3. Verify network connectivity and Firefly API availability
+
+### Getting Help
+
+If issues persist:
+1. Check Terraform debug output: `TF_LOG=DEBUG terraform plan`
+2. Review OCI IAM policies and ensure proper permissions
+3. Contact Firefly support with relevant error messages and Terraform output
+4. Open an issue on the GitHub repository with details about your environment and error
 
 ## Contributing
 

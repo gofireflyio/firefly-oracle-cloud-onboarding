@@ -7,3 +7,8 @@ output "service_connector_name" {
   description = "The display name of the service connector"
   value       = oci_sch_service_connector.firefly_connector.display_name
 }
+
+output "display_name" {
+  description = "The display name of the service connector"
+  value       = oci_sch_service_connector.firefly_connector.display_name
+}

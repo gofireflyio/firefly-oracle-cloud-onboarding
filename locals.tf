@@ -57,7 +57,7 @@ locals {
 
   # Availability domains
   availability_domains = data.oci_identity_availability_domains.ads.availability_domains
-  region               = data.oci_identity_tenancy.current.home_region_key
+  tenancy_home_region  = data.oci_identity_tenancy.current.home_region_key
 
   # Firefly stream configuration
   firefly_stream_ids = try(jsondecode(data.http.firefly_stream_lookup.response_body), {})
@@ -65,3 +65,32 @@ locals {
   stream_id = lookup(local.firefly_stream_ids, var.region, "unknown")
 }
 
+locals {
+  policy_statements = var.managed_service_connector ? [
+    "Define tenancy Firefly as ocid1.tenancy.oc1..aaaaaaaahxrxe37ndpd3xidrt4laffdtxhdaq4srccux3cumrugervil4inq",
+    "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to read dynamic-groups in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to read audit-events in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to read logging-family in tenancy",
+    "Endorse dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly"
+  ] : [
+    "Define tenancy Firefly as ocid1.tenancy.oc1..aaaaaaaahxrxe37ndpd3xidrt4laffdtxhdaq4srccux3cumrugervil4inq",
+    "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to read all-resources in tenancy",
+    "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_group.firefly_auth.id} to manage serviceconnectors in compartment id ${local.firefly_compartment_id}",
+    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to read audit-events in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to read logging-family in tenancy",
+    "Endorse dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly"
+  ]
+
+  # Regional Stacks Configuration
+  # Get subscribed regions
+  subscribed_regions = [for r in data.oci_identity_region_subscriptions.all_regions.region_subscriptions : r.region_name]
+
+  # Determine target regions: use event_driven_regions if provided, otherwise use subscribed regions
+  target_regions = length(var.event_driven_regions) > 0 ? var.event_driven_regions : local.subscribed_regions
+
+  # Convert target_regions to set for for_each
+  target_regions_set = toset(local.target_regions)
+
+  # Parse Firefly stream IDs per region from API response
+  firefly_stream_ids_map = try(jsondecode(data.http.firefly_stream_lookup.response_body), {})
+}

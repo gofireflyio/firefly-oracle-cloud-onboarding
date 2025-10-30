@@ -14,18 +14,6 @@ output "dynamic_group_id" {
 }
 
 
-output "service_connectors_by_region" {
-  description = "Service Connectors created per region"
-  value = {
-    for region, module_data in module.service_connector_by_region :
-    region => {
-      id           = module_data.service_connector_id
-      display_name = module_data.display_name
-      region       = region
-    }
-  }
-}
-
 
 output "tenancy_info" {
   description = "Information about the OCI tenancy"

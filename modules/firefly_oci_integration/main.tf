@@ -21,6 +21,7 @@ data "http" "firefly_oci_integration_request" {
       "isProd"                     = var.is_prod,
       "isEventDriven"              = var.eventdriven_enabled,
       "integrationSessionId"       = var.integration_session_id
+      "managedServiceConnector"    = var.managed_service_connector
     }
   )
 }

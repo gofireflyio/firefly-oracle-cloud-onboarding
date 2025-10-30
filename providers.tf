@@ -5,17 +5,21 @@ terraform {
       source  = "oracle/oci"
       version = ">=7.16.0"
     }
+    http = {
+      source  = "hashicorp/http"
+      version = ">=3.0.0"
+    }
   }
 }
 
 provider "oci" {
-  config_file_profile = "firefly-dev"
+  tenancy_ocid = var.tenancy_ocid
   region       = var.region
+  
 }
 
 provider "oci" {
   alias        = "home"
-  config_file_profile = "firefly-dev"
-  region       = data.oci_identity_tenancy.current.home_region_key
+  tenancy_ocid = var.tenancy_ocid
+  region       = local.tenancy_home_region
 }
-

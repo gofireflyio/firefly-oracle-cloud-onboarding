@@ -24,19 +24,15 @@ resource "oci_identity_dynamic_group" "firefly_serviceconnector_group" {
   freeform_tags  = local.common_tags
 }
 
+
 # Policy for Service Connector Hub permissions
 resource "oci_identity_policy" "firefly_auth_policy" {
   depends_on = [oci_identity_group.firefly_auth]
   compartment_id = var.tenancy_ocid
   description    = "[DO NOT REMOVE] Policies required by Firefly User"
   name           = local.user_group_policy_name
-  statements = [
-    "Define tenancy Firefly as ocid1.tenancy.oc1..aaaaaaaahxrxe37ndpd3xidrt4laffdtxhdaq4srccux3cumrugervil4inq",
-    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to read audit-events in tenancy",
-    "Allow dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to read logging-family in tenancy",
-    "Endorse dynamic-group ${oci_identity_dynamic_group.firefly_serviceconnector_group[0].name} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly",
-  ]
-  freeform_tags = local.common_tags
+  statements     = local.policy_statements
+  freeform_tags  = local.common_tags
 }
 
 

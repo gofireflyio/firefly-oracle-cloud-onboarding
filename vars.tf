@@ -110,9 +110,9 @@ variable "existing_group_id" {
   default     = null
 }
 
-variable "create_service_connector" {
+variable "managed_service_connector" {
   type        = bool
-  description = "Whether to create a service connector"
+  description = "Whether to let Firefly manage the service connector"
   default     = false
 }
 

@@ -1,14 +1,4 @@
-terraform {
-  required_version = ">= 1.5.0"
-  required_providers {
-    oci = {
-      source  = "oracle/oci"
-      version = ">=7.1.0"
-    }
-  }
-}
-
-# Event filter conditions for OCI audit events (v2.0.3 policy)
+# Event filter conditions for OCI audit events
 locals {
   # Comprehensive list of OCI events to filter for Firefly monitoring
   event_filters = [
@@ -95,14 +85,13 @@ locals {
     "com.oraclecloud.computeapi.detachvolume.end",
   ]
 
-  # Build filter conditions: (type='event1' or type='event2' or ...)
-  # This creates the OCI SCH filter expression for event-based routing
+  # Build filter condition
   filter_condition = "(${join(" or ", [for event in local.event_filters : "type='${event}'"])})"
 }
 
 # Create Service Connector Hub to route audit logs
 resource "oci_sch_service_connector" "firefly_connector" {
-  compartment_id = var.compartment_id
+  compartment_id = var.compartment_ocid
   display_name   = var.display_name
   description    = "Service Connector Hub for routing Firefly audit logs to stream in region ${var.region}"
 

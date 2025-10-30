@@ -36,7 +36,7 @@ jobs:
             @semantic-release/git@10.0.0
             conventional-changelog-conventionalcommits@4.6.3
         env:
-          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate release zip file
         run: |
@@ -51,7 +51,7 @@ jobs:
         with:
           files: terraform-firefly-oci-onboarding.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set env current release
         run: echo "RELEASE_VERSION=${{ steps.semantic.outputs.last_release_version }}" >> $GITHUB_ENV

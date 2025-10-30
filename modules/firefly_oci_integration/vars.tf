@@ -107,3 +107,9 @@ variable "skip_integration_request" {
   description = "Skip the HTTP integration request (useful for destroy operations)"
   default     = false
 }
+
+variable "managed_service_connector" {
+  type        = bool
+  description = "Whether to manage the service connector"
+  default     = true
+}

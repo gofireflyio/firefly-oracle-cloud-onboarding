@@ -26,16 +26,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-      - name: Release
-        uses: cycjimmy/semantic-release-action@v2
-        id: semantic
-        with:
-          semantic_version: 18.0.0
-          extra_plugins: |
-            @semantic-release/changelog@6.0.0
-            conventional-changelog-conventionalcommits@4.6.3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate release zip file
         run: |
@@ -44,13 +34,14 @@ jobs:
             modules/ \
             -x "*.tfstate*" "*.tfvars*" ".terraform/*" "*.tfplan" ".terraform.lock.hcl" "*.md" "*.gif"
 
-
-      - name: Upload zip to release
-        if: steps.semantic.outputs.new_release_published == 'true'
-        uses: softprops/action-gh-release@v1
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v2
+        id: semantic
         with:
-          files: terraform-firefly-oci-onboarding.zip
-          tag_name: ${{ steps.semantic.outputs.new_release_version }}
+          semantic_version: 18.0.0
+          extra_plugins: |
+            @semantic-release/changelog@6.0.0
+            conventional-changelog-conventionalcommits@4.6.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

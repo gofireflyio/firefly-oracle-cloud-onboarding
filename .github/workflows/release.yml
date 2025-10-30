@@ -47,7 +47,6 @@ jobs:
 
       - name: Upload zip to release
         uses: softprops/action-gh-release@v1
-        if: steps.semantic.outputs.new_release_published == 'true'
         with:
           files: terraform-firefly-oci-onboarding.zip
         env:

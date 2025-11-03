@@ -55,10 +55,6 @@ variable "current_user_ocid" {
   description = "OCI User OCID (optional)"
 }
 
-# variable "region" {
-#   type        = string
-#   description = "OCI Region as documented at https://docs.cloud.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm"
-# }
 
 variable "prefix" {
   type    = string

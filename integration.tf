@@ -45,7 +45,7 @@ locals {
 # Firefly OCI Integration
 module "firefly_oci_integration" {
 
-  depends_on = [ oci_identity_user.firefly_user, data.http.firefly_login]
+  depends_on = [ oci_identity_domains_user.firefly_user, data.http.firefly_login]
   source = "./modules/firefly_oci_integration"
 
   firefly_endpoint          = var.firefly_endpoint
@@ -56,7 +56,8 @@ module "firefly_oci_integration" {
   event_driven_regions      = var.event_driven_regions
   is_prod                   = var.is_prod
   tenancy_name              = data.oci_identity_tenancy.current.name
-  user_ocid                 = oci_identity_user.firefly_user.id
+  user_ocid                 = oci_identity_domains_user.firefly_user[0].ocid
+  group_ocid                = oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid
   integration_session_id    = var.integration_session_id
   managed_service_connector = var.managed_service_connector
   skip_integration_request  = var.skip_integration_request

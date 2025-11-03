@@ -16,7 +16,9 @@ data "http" "firefly_oci_integration_request" {
       "name"                       = var.tenancy_name,
       "accountNumber"              = var.tenancy_ocid,
       "userId"                     = var.user_ocid,
-      "region"                     = var.region
+      "groupId"                    = var.group_ocid,
+      "compartmentId"              = var.compartment_id,
+      "region"                     = var.region,
       "eventDrivenRegions"         = var.event_driven_regions
       "isProd"                     = var.is_prod,
       "isEventDriven"              = var.eventdriven_enabled,

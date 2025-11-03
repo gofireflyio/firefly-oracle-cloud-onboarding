@@ -46,7 +46,7 @@ resource "null_resource" "regional_stacks_create_apply" {
 
     echo "Creating/updating Firefly regional stack in region: ${each.key}"
 
-    STACK_NAME="firefly-regional-stack-${terraform_data.stack_digest.id}"
+    STACK_NAME="firefly-regional-stack-${terraform_data.stack_digest[0].id}"
 
     # Check for existing stacks with the same name in this region
     STACK_IDS=($(oci --region ${each.key} resource-manager stack list --display-name $STACK_NAME --compartment-id ${local.firefly_compartment_id} --raw-output 2>/dev/null | jq -r '.data[]."id"' 2>/dev/null))
@@ -113,7 +113,7 @@ resource "terraform_data" "regional_stacks_destroy" {
 
   input = {
     compartment     = local.firefly_compartment_id
-    stack_digest_id = terraform_data.stack_digest.id
+    stack_digest_id = terraform_data.stack_digest[0].id
   }
 
   provisioner "local-exec" {

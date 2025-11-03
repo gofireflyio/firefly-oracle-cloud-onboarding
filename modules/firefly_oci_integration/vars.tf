@@ -54,6 +54,12 @@ variable "user_ocid" {
   default     = null
 }
 
+variable "group_ocid" {
+  type        = string
+  description = "OCI Group OCID"
+  default     = null
+}
+
 variable "public_key" {
   type        = string
   description = "OCI API key public key content"
@@ -113,3 +119,4 @@ variable "managed_service_connector" {
   description = "Whether to manage the service connector"
   default     = true
 }
+

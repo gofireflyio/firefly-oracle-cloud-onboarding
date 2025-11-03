@@ -58,7 +58,7 @@ module "firefly_oci_integration" {
   tenancy_name              = data.oci_identity_tenancy.current.name
   user_ocid                 = oci_identity_domains_user.firefly_user[0].ocid
   group_ocid                = oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid
-  integration_session_id    = var.integration_session_id
+  integration_session_id    = var.integrationSessionId
   managed_service_connector = var.managed_service_connector
   skip_integration_request  = var.skip_integration_request
   tags                      = var.tags

@@ -125,7 +125,7 @@ variable "is_prod" {
   default     = true
 }
 
-variable "integration_session_id" {
+variable "integrationSessionId" {
   type        = string
   description = "Integration session ID"
   default     = null

@@ -93,16 +93,16 @@ locals {
     "Define tenancy Firefly as ocid1.tenancy.oc1..aaaaaaaahxrxe37ndpd3xidrt4laffdtxhdaq4srccux3cumrugervil4inq",
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_domains_group.firefly_auth[0].ocid} to read all-resources in tenancy",
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_domains_group.firefly_auth[0].ocid} to manage serviceconnectors in compartment id ${local.firefly_compartment_id}",
-    "Allow dynamic-group ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to read audit-events in tenancy",
-    "Allow dynamic-group ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to read logging-family in tenancy",
-    "Endorse dynamic-group ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly"
+    "Allow dynamic-group id ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to read audit-events in tenancy",
+    "Allow dynamic-group id ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to read logging-family in tenancy",
+    "Endorse dynamic-group id ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly"
   ] : [
     "Define tenancy Firefly as ocid1.tenancy.oc1..aaaaaaaahxrxe37ndpd3xidrt4laffdtxhdaq4srccux3cumrugervil4inq",
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_domains_group.firefly_auth[0].ocid} to read all-resources in tenancy",
     "Allow group id ${var.existing_group_id != null && var.existing_group_id != "" ? var.existing_group_id : oci_identity_domains_group.firefly_auth[0].ocid} to read dynamic-groups in tenancy",
-    "Allow dynamic-group ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to read audit-events in tenancy",
-    "Allow dynamic-group ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to read logging-family in tenancy",
-    "Endorse dynamic-group ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly"
+    "Allow dynamic-group id ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to read audit-events in tenancy",
+    "Allow dynamic-group id ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to read logging-family in tenancy",
+    "Endorse dynamic-group id ${oci_identity_domains_dynamic_resource_group.firefly_serviceconnector_group[0].ocid} to {STREAM_READ, STREAM_PRODUCE} in tenancy Firefly"
   ]
 
   # Regional Stacks Configuration

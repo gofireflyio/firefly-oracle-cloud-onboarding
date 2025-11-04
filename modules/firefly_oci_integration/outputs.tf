@@ -29,12 +29,12 @@ output "integration_id" {
 }
 
 output "status_code" {
-  value = try(data.http.firefly_oci_integration_request[0].status_code, null)
+  value = try(restapi_object.firefly_oci_integration_request[0].id, null)
 }
 output "response_body" {
-  value = try(data.http.firefly_oci_integration_request[0].response_body, null)
+  value = try(restapi_object.firefly_oci_integration_request[0].api_response, null)
 }
 
 output "request_body" {
-  value = try(data.http.firefly_oci_integration_request[0].request_body, null)
+  value = try(restapi_object.firefly_oci_integration_request[0].data, null)
 }

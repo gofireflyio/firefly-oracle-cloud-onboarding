@@ -5,5 +5,9 @@ terraform {
       source  = "oracle/oci"
       version = ">=7.1.0"
     }
+    restapi = {
+      source  = "Mastercard/restapi"
+      version = "1.20.0"
+    }
   }
 }

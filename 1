@@ -1,0 +1,33 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app":"metamcp"},"name":"metamcp","namespace":"metamcp"},"spec":{"ports":[{"port":12008,"protocol":"TCP","targetPort":12008}],"selector":{"app":"metamcp"},"type":"ClusterIP"}}
+  creationTimestamp: "2025-09-29T09:29:06Z"
+  labels:
+    app: metamcp
+  name: metamcp
+  namespace: metamcp
+  resourceVersion: "280976991"
+  uid: cc7ce4e1-03ea-428d-aebd-f5ebc5ee43c0
+spec:
+  clusterIPs:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 12008
+    protocol: TCP
+    targetPort: 12008
+  selector:
+    app: metamcp
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

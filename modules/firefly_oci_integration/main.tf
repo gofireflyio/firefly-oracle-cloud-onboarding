@@ -1,17 +1,7 @@
-data "http" "firefly_oci_integration_request" {
+resource "restapi_object" "firefly_oci_integration_request" {
   count  = var.skip_integration_request ? 0 : 1
-  url    = "${var.firefly_endpoint}/integrations/oci?onConflictUpdate=true"
-  method = "POST"
-  request_headers = {
-    Content-Type  = "application/json"
-    Authorization = "Bearer ${var.firefly_token}"
-  }
-  retry {
-    attempts     = 3
-    max_delay_ms = 5000
-    min_delay_ms = 5000
-  }
-  request_body = jsonencode(
+  path   = "/integrations/oci?onConflictUpdate=true"
+  data   = jsonencode(
     {
       "name"                       = var.tenancy_name,
       "accountNumber"              = var.tenancy_ocid,
@@ -29,7 +19,7 @@ data "http" "firefly_oci_integration_request" {
 }
 
 locals {
-  response_obj = try(jsondecode(data.http.firefly_oci_integration_request[0].response_body), {})
+  response_obj = try(jsondecode(restapi_object.firefly_oci_integration_request[0].api_response), {})
   
   # Check if response has integration data or just a message (error case)
   has_integration = can(local.response_obj.integration)

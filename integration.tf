@@ -25,19 +25,15 @@ resource "null_resource" "firefly_validation" {
   }
 }
 
-data "http" "firefly_login" {
+resource "restapi_object" "firefly_login" {
   depends_on = [null_resource.firefly_validation]
   count  = var.firefly_secret_key != "" ? 1 : 0
-  url    = "${var.firefly_endpoint}/account/access_keys/login"
-  method = "POST"
-  request_headers = {
-    Content-Type = "application/json"
-  }
-  request_body = jsonencode({ "accessKey" = var.firefly_access_key, "secretKey" = var.firefly_secret_key })
+  path   = "/account/access_keys/login"
+  data   = jsonencode({ "accessKey" = var.firefly_access_key, "secretKey" = var.firefly_secret_key })
 }
 
 locals {
-  response_obj = try(jsondecode(data.http.firefly_login[0].response_body), {})
+  response_obj = try(jsondecode(restapi_object.firefly_login[0].api_response), {})
   token        = lookup(local.response_obj, "access_token", "error")
 }
 
@@ -45,7 +41,7 @@ locals {
 # Firefly OCI Integration
 module "firefly_oci_integration" {
 
-  depends_on = [ oci_identity_domains_user.firefly_user, data.http.firefly_login]
+  depends_on = [ oci_identity_domains_user.firefly_user, restapi_object.firefly_login]
   source = "./modules/firefly_oci_integration"
 
   firefly_endpoint          = var.firefly_endpoint

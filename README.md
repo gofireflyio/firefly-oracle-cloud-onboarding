@@ -100,32 +100,33 @@ provider "oci" {
 
 module "firefly_oci_integration" {
   source = "github.com/gofireflyio/terraform-firefly-oci-onboarding?ref=v1.0.0"
-  
+
   # Required variables
   tenancy_ocid           = var.tenancy_ocid
   firefly_access_key     = var.firefly_access_key
   firefly_secret_key     = var.firefly_secret_key
-  
+  current_user_ocid      = var.current_user_ocid
+  region                 = var.region
+
   # Optional variables with defaults
-  compartment_id            = var.compartment_id       # If null, uses tenancy root compartment
-  current_user_ocid         = var.current_user_ocid    # Required - current user OCID
-  region                    = var.region               # Required - no default
-  prefix                    = var.prefix               # Default: ""
-  suffix                    = var.suffix               # Default: ""
-  tags                      = var.tags                 # Default: {}
-  firefly_endpoint          = var.firefly_endpoint     # Default: https://prodapi.firefly.ai/api
-  
+  compartment_ocid          = var.compartment_ocid       # If null, creates "Firefly" compartment
+  domain_id                 = var.domain_id              # Identity domain for user/group management
+  prefix                    = var.prefix                 # Default: ""
+  suffix                    = var.suffix                 # Default: ""
+  tags                      = var.tags                   # Default: {}
+  firefly_endpoint          = var.firefly_endpoint       # Default: https://prodapi.firefly.ai/api
+
   # Optional - for using existing resources
-  existing_user_id          = var.existing_user_id         # Use existing OCI user
-  existing_group_id         = var.existing_group_id        # Use existing OCI group  
-  existing_log_group_id     = var.existing_log_group_id    # Use existing log group
-  existing_dynamic_group_id = var.existing_dynamic_group_id # Use existing dynamic group
-  
+  existing_user_id          = var.existing_user_id           # Use existing OCI user
+  existing_group_id         = var.existing_group_id          # Use existing OCI group
+  existing_dynamic_group_id = var.existing_dynamic_group_id  # Use existing dynamic group
+
   # Optional - service connector and event-driven configuration
-  create_service_connector  = var.create_service_connector # Default: false
-  event_driven_regions      = var.event_driven_regions     # Default: []
-  is_prod                   = var.is_prod                  # Default: true
-  integrationSessionId      = var.integrationSessionId     # Default: null
+  managed_service_connector = var.managed_service_connector # Default: true
+  event_driven_regions      = var.event_driven_regions       # Default: []
+  is_prod                   = var.is_prod                    # Default: true
+  integrationSessionId      = var.integrationSessionId       # Default: null
+  skip_integration_request  = var.skip_integration_request   # Default: false
 }
 ```
 
@@ -144,8 +145,7 @@ The Terraform module will create the following OCI resources:
 
 ## Deploy to OCI
 
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create
-?zipUrl=https://github.com/gofireflyio/firefly-oracle-cloud-onboarding/releases/download/v1.0.1/terraform-firefly-oci-onboarding.zip)
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/gofireflyio/firefly-oracle-cloud-onboarding/releases/download/v1.0.1/terraform-firefly-oci-onboarding.zip)
 
 ### Optional Resources
 If you don't provide existing resource IDs, the module will create new ones. You can reuse existing resources by providing their OCIDs via variables.
@@ -161,11 +161,11 @@ If you don't provide existing resource IDs, the module will create new ones. You
 | `firefly_access_key` | Firefly access key for authentication | string |
 | `firefly_secret_key` | Firefly secret key for authentication | string |
 
-### Optional Variables - Compartment Management
+### Optional Variables - Compartment and Identity Domain Management
 | Variable | Description | Type | Default |
 |----------|-------------|------|---------|
 | `compartment_ocid` | OCID of the compartment to use for Firefly resources. If null, a compartment named 'Firefly' will be auto-created in the tenancy | string | null |
-| `domain_id` | OCID of the identity domain to use for user and group management. If not provided, the default domain will be used | string | "" |
+| `domain_id` | OCID of the identity domain to use for user and group management. If not provided, an intelligent selection process is used | string | "" |
 
 ### Optional Variables - API Configuration
 | Variable | Description | Type | Default |
@@ -188,15 +188,15 @@ If you don't provide existing resource IDs, the module will create new ones. You
 |----------|-------------|------|---------|
 | `existing_user_id` | OCID of existing user to use instead of creating new one | string | null |
 | `existing_group_id` | OCID of existing group to use instead of creating new one | string | null |
-| `existing_log_group_id` | OCID of existing log group to use | string | "" |
 | `existing_dynamic_group_id` | OCID of existing dynamic group to use | string | "" |
 
 ### Optional Variables - Service Connector and Event-Driven
 | Variable | Description | Type | Default |
 |----------|-------------|------|---------|
-| `create_service_connector` | Whether to create a service connector for audit log streaming | bool | false |
+| `managed_service_connector` | Whether to let Firefly manage the service connector | bool | true |
 | `event_driven_regions` | List of OCI regions for event-driven integration (service connectors will be created in each region) | list(string) | [] |
 | `is_prod` | Whether this is a production environment | bool | true |
+| `integrationSessionId` | Integration session ID for tracking | string | null |
 
 **Security Note**: Store your Firefly credentials securely using environment variables or a `terraform.tfvars` file that is not committed to version control.
 
@@ -219,7 +219,7 @@ region           = "eu-frankfurt-1"  # or your preferred OCI region
 # domain_id = "ocid1.domain.oc1..aaaaaaaaxxx..."               # Leave blank to use default domain
 
 # Optional: Configure service connectors
-create_service_connector = true
+managed_service_connector = true
 event_driven_regions = ["eu-frankfurt-1", "us-phoenix-1"]
 
 # Optional: Add custom tags
@@ -253,6 +253,29 @@ The Firefly OCI integration uses an intelligent compartment selection strategy:
   ```hcl
   compartment_ocid = "ocid1.compartment.oc1..aaaaaaaaxxx..."
   ```
+
+## Identity Domain Management
+
+The module uses an intelligent identity domain selection process for creating users and groups in the appropriate domain. This is important in OCI tenancies with multiple identity domains.
+
+### Domain Selection Process
+
+When you don't explicitly provide a `domain_id`, the module follows this fallback logic:
+
+1. **Explicit Domain** (if provided): Uses the `domain_id` variable you specify
+2. **Existing User's Domain**: If you provide an `existing_user_id`, uses the domain where that user exists
+3. **Current User's Domain**: Falls back to the domain of the `current_user_ocid` (the user running Terraform)
+4. **Default Domain**: If none of the above can be determined, uses the tenancy's default domain
+
+### Specifying a Domain
+
+To explicitly specify an identity domain:
+
+```hcl
+domain_id = "ocid1.domain.oc1..aaaaaaaaxxx..."
+```
+
+This ensures users and groups are created in the specified domain rather than relying on automatic detection.
 
 ## Integration Request Handling
 
@@ -307,9 +330,7 @@ The module provides the following outputs:
 | `public_key` | Public key for the created API key |
 | `fingerprint` | Fingerprint of the created API key |
 | `integration_id` | Firefly integration ID |
-| `status_code` | Status code from Firefly API integration |
-| `response_body` | Response body from Firefly API integration |
-| `service_connectors_by_region` | Service Connectors created per region (when `create_service_connector = true`) |
+| `response_message` | Response body from Firefly API integration |
 
 ## Data Sources
 
@@ -346,7 +367,7 @@ The module automatically configures audit log streaming using OCI's built-in aud
 
 ## Service Connector Hub
 
-The Service Connector Hub is an optional component that can be enabled by setting `create_service_connector = true`. When enabled, it creates service connectors in one or more OCI regions as specified by `event_driven_regions`.
+The Service Connector Hub is an optional component that can be configured using the `managed_service_connector` and `event_driven_regions` variables. When `event_driven_regions` is set to a non-empty list, service connectors are created in those OCI regions. The `managed_service_connector` variable controls whether Firefly manages the connector (default: `true`).
 
 ### Service Connector Configuration
 
@@ -362,8 +383,8 @@ Each service connector is configured as follows:
 To enable service connectors in multiple regions:
 
 ```hcl
-create_service_connector = true
 event_driven_regions = ["eu-frankfurt-1", "us-phoenix-1", "eu-amsterdam-1"]
+managed_service_connector = true
 ```
 
 This will create one service connector per specified region, each with region-specific naming and configuration.
@@ -375,7 +396,7 @@ The target stream is automatically selected based on your OCI region through Fir
 2. Service connectors are created with the appropriate stream ID for each region
 3. Audit events flow directly to Firefly's regional streams for processing
 
-**Note**: By default, the service connector is **not created** (`create_service_connector = false`). Set this variable to `true` if you want to enable audit log streaming.
+**Note**: By default, no service connectors are created (`event_driven_regions = []`). Specify one or more regions in `event_driven_regions` to enable audit log streaming to Firefly.
 
 ## Event Filtering
 

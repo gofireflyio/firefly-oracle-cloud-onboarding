@@ -414,18 +414,5 @@ Service Connectors are configured with comprehensive OCI event filtering to capt
 
 The complete list of filtered events is dynamically configured in the service connector's LogRule task condition, ensuring all critical OCI operations are captured and streamed to Firefly for analysis.
 
-## Troubleshooting
-
-### Common Issues and Solutions
-
-#### Issue: "key must not be empty" error during terraform apply
-
-**Cause**: The Firefly integration API didn't return a public key
-**Solutions**:
-1. Verify Firefly credentials are correct in `terraform.tfvars`
-2. Check network connectivity to `https://prodapi.firefly.ai/api`
-3. Review the error response: Check the `module.firefly_oci_integration.response_body` output
-4. For subsequent applies, always set `skip_integration_request = true`
-
 
 

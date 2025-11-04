@@ -427,54 +427,5 @@ The complete list of filtered events is dynamically configured in the service co
 3. Review the error response: Check the `module.firefly_oci_integration.response_body` output
 4. For subsequent applies, always set `skip_integration_request = true`
 
-#### Issue: "Tenant id is not equal to compartment id" error
 
-**Cause**: Attempting to create OCI Identity resources (users, groups, policies) in a sub-compartment
-**Solution**: This is correctly handled - Identity resources are created in the root tenancy, while application resources are created in the Firefly compartment
 
-#### Issue: "Dynamic group can only be created in the tenancy compartment" error
-
-**Cause**: Same as above
-**Solution**: This is correctly handled in the current configuration
-
-#### Issue: Service connector not receiving audit events
-
-**Cause**: Multiple possible causes
-**Solutions**:
-1. Verify the dynamic group matching rule is correct: `All {resource.type = 'serviceconnector'}`
-2. Ensure the service connector has proper permissions (check IAM policies)
-3. Verify the audit log group is properly configured
-4. Check that events are actually being generated in the specified compartment
-5. Review OCI Logging service for any configuration issues
-
-#### Issue: Terraform plan/apply is slow
-
-**Cause**: Integration API calls or data source queries
-**Solutions**:
-1. Use `skip_integration_request = true` for subsequent applies
-2. Reduce the number of regions in `event_driven_regions` if not needed
-3. Verify network connectivity and Firefly API availability
-
-### Getting Help
-
-If issues persist:
-1. Check Terraform debug output: `TF_LOG=DEBUG terraform plan`
-2. Review OCI IAM policies and ensure proper permissions
-3. Contact Firefly support with relevant error messages and Terraform output
-4. Open an issue on the GitHub repository with details about your environment and error
-
-## Contributing
-
-We welcome contributions to the Firefly OCI Integration! If you have functionality that you think would be valuable to other Firefly customers, please feel free to submit a pull request.
-
-When contributing, please:
-
-1. Ensure your code is well-documented
-2. Include a README or update the existing README with usage instructions
-3. Test your code thoroughly before submitting
-
-## Support
-
-If you encounter any issues or have questions about using this repository, please open an issue on GitHub or contact Firefly support.
-
-For more information about Firefly and our services, please visit [our website](https://www.gofirefly.io/).

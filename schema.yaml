@@ -11,8 +11,9 @@ variableGroups:
     variables:
       - ${tenancy_ocid}
       - ${region}
-      - ${compartment_id}
-      - ${user_ocid}
+      - ${compartment_ocid}
+      - ${current_user_ocid}
+      - ${domain_id}
     visible: false
   - title: "Firefly Authentication"
     variables:
@@ -26,8 +27,7 @@ variableGroups:
       - ${tags}
   - title: "Service Connector Options"
     variables:
-      - ${create_service_connector}
-      - ${existing_log_group_id}
+      - ${managed_service_connector}
       - ${existing_dynamic_group_id}
       - ${dynamic_group_name}
   - title: "Advanced Options"
@@ -35,6 +35,10 @@ variableGroups:
       - ${existing_user_id}
       - ${existing_group_id}
       - ${firefly_auth_policy}
+      - ${event_driven_regions}
+      - ${is_prod}
+      - ${integrationSessionId}
+      - ${skip_integration_request}
 
 variables:
   # Firefly Authentication
@@ -66,14 +70,21 @@ variables:
     confirmation: true
 
   # Resource Configuration
-  compartment_id:
+  compartment_ocid:
     title: Compartment
     description: |
-      Select a Compartment where Firefly resources will be created.
-      <strong>(Recommended): If left blank, a new Compartment named 'Firefly' will be created.</strong>
+      OCID of the compartment to use for Firefly resources. If null, a compartment named 'Firefly' will be created in the tenancy.
     type: oci:identity:compartment:id
     required: false
     default: null
+
+  domain_id:
+    title: Identity Domain
+    type: string
+    description: |
+      OCID of the identity domain to use for user and group management. If not provided, the default domain will be used.
+    required: false
+    default: ""
 
   prefix:
     title: Resource Name Prefix
@@ -105,24 +116,13 @@ variables:
     default: ""
 
   # Service Connector Configuration
-  create_service_connector:
-    title: Create Service Connector
+  managed_service_connector:
+    title: Let Firefly Manage Service Connector
     type: boolean
     description: |
-      Whether to create a service connector for streaming OCI logs to Firefly.
-      <strong>Enable this if you want real-time log streaming capabilities.</strong>
+      Whether to let Firefly manage the service connector for log streaming.
     required: false
-    default: false
-
-  existing_log_group_id:
-    title: Existing Log Group ID
-    type: string
-    description: |
-      OCID of an existing log group to use. If provided, a new log group will not be created.
-      Leave blank to create a new log group automatically.
-    required: false
-    default: ""
-    visible: ${create_service_connector}
+    default: true
 
   existing_dynamic_group_id:
     title: Existing Dynamic Group ID
@@ -132,7 +132,6 @@ variables:
       Leave blank to create a new dynamic group automatically.
     required: false
     default: ""
-    visible: ${create_service_connector}
 
   dynamic_group_name:
     title: Dynamic Group Name
@@ -141,7 +140,6 @@ variables:
       Name for the dynamic group that will be created (if not using an existing one).
     required: false
     default: "firefly-dynamic-group"
-    visible: ${create_service_connector}
 
   # Advanced Options
   existing_user_id:
@@ -170,6 +168,39 @@ variables:
     required: false
     default: "firefly-auth-policy"
 
+  event_driven_regions:
+    title: Event-Driven Integration Regions
+    type: string
+    description: |
+      OCI regions for event-driven integration. Comma-separated list of region names (e.g., us-phoenix-1,us-ashburn-1).
+      Leave blank to use all subscribed regions.
+    required: false
+    default: ""
+
+  is_prod:
+    title: Production Environment
+    type: boolean
+    description: |
+      Whether this is a production environment.
+    required: false
+    default: true
+
+  integrationSessionId:
+    title: Integration Session ID
+    type: string
+    description: |
+      Integration session ID for tracking purposes.
+    required: false
+    default: ""
+
+  skip_integration_request:
+    title: Skip Integration Request
+    type: boolean
+    description: |
+      Skip the HTTP integration request (useful for destroy operations).
+    required: false
+    default: false
+
   # Hidden variables (automatically populated by ORM)
   tenancy_ocid:
     title: Tenancy OCID
@@ -177,13 +208,18 @@ variables:
     description: "The OCID of the tenancy"
     required: true
 
-
-  user_ocid:
+  current_user_ocid:
     title: Current User OCID
     type: string
     description: "The OCID of the current user"
     required: false
     default: ""
+
+  region:
+    title: Region
+    type: string
+    description: "OCI Region for default provider"
+    required: true
 
 outputs:
   firefly_integration_status:

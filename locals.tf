@@ -1,7 +1,7 @@
 #Auth Variables
 locals {
   user_name              = "firefly-svc"
-  user_group_name        = "${local.user_name}-admin"
+  user_group_name        = "${local.user_name}-group"
   user_group_policy_name = "${local.user_name}-policy"
   firefly_sch_name            = "${var.prefix}firefly-dynamic-group-connectorhubs${var.suffix}"
   firefly_policy_name         = "${var.prefix}firefly-dynamic-group-policy${var.suffix}"
@@ -75,7 +75,6 @@ locals {
   })
 
   # Resource IDs - these will be available after the modules are created
-  log_group_id = var.existing_log_group_id != "" ? var.existing_log_group_id : null
   dynamic_group_id = var.existing_dynamic_group_id != "" ? var.existing_dynamic_group_id : null
 
   # Availability domains

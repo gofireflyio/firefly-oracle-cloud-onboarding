@@ -17,11 +17,6 @@ data "oci_identity_region_subscriptions" "all_regions" {
   provider   = oci.home
 }
 
-# Get existing log group if specified
-data "oci_logging_log_group" "existing_log_group" {
-  count = var.existing_log_group_id != "" ? 1 : 0
-  log_group_id = var.existing_log_group_id
-}
 
 # Get availability domains for the compartment
 data "oci_identity_availability_domains" "ads" {

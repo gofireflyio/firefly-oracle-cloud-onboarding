@@ -71,12 +71,6 @@ variable "tags" {
   default = {}
 }
 
-
-variable "existing_log_group_id" {
-  type    = string
-  default = ""
-}
-
 variable "existing_dynamic_group_id" {
   type    = string
   default = ""
@@ -109,7 +103,7 @@ variable "existing_group_id" {
 variable "managed_service_connector" {
   type        = bool
   description = "Whether to let Firefly manage the service connector"
-  default     = false
+  default     = true
 }
 
 variable "event_driven_regions" {

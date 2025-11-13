@@ -1,10 +1,11 @@
 #Auth Variables
 locals {
-  user_name              = "firefly-svc"
+  user_name              = "${local.name_prefix}firefly-svc${local.name_suffix}"
   user_group_name        = "${local.user_name}-group"
   user_group_policy_name = "${local.user_name}-policy"
-  firefly_sch_name            = "${var.prefix}firefly-dynamic-group-connectorhubs${var.suffix}"
-  firefly_policy_name         = "${var.prefix}firefly-dynamic-group-policy${var.suffix}"
+  firefly_sch_name            = "${local.name_prefix}firefly-dynamic-group-connectorhubs${local.name_suffix}"
+  firefly_policy_name         = "${local.name_prefix}firefly-dynamic-group-policy${local.name_suffix}"
+  dynamic_group_name           = "${local.name_prefix}${var.dynamic_group_name}${local.name_suffix}"
   matching_domain_id = (
     # If the domain is specified, use that
     var.domain_id != null && var.domain_id != "" ?
@@ -82,7 +83,7 @@ locals {
   tenancy_home_region  = data.oci_identity_tenancy.current.home_region_key
 
   # Firefly stream configuration
-  firefly_stream_ids = try(jsondecode(data.http.firefly_stream_lookup.response_body), {})
+  firefly_stream_ids = try(jsondecode(data.http.firefly_stream_lookup[0].response_body), {})
   # Lookup actual stream ID from Firefly's service
   stream_id = lookup(local.firefly_stream_ids, var.region, "unknown")
 }
@@ -115,5 +116,5 @@ locals {
   target_regions_set = toset(local.target_regions)
 
   # Parse Firefly stream IDs per region from API response
-  firefly_stream_ids_map = try(jsondecode(data.http.firefly_stream_lookup.response_body), {})
+  firefly_stream_ids_map = try(jsondecode(data.http.firefly_stream_lookup[0].response_body), {})
 }

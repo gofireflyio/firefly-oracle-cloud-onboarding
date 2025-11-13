@@ -31,6 +31,7 @@ data "oci_identity_api_keys" "current_user_keys" {
 
 # # Fetch actual stream ID from Firefly service using region endpoint
 data "http" "firefly_stream_lookup" {
+  count = var.managed_service_connector ? 0 : 1
   depends_on = [data.http.firefly_login]
   url = "${var.firefly_endpoint}/integrations/oci/stream-ids"
   method = "GET"

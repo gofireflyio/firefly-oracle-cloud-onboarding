@@ -53,7 +53,7 @@ resource "oci_identity_domains_dynamic_resource_group" "firefly_serviceconnector
   count          = var.existing_dynamic_group_id == "" ? 1 : 0
   idcs_endpoint = local.idcs_endpoint
   schemas       = ["urn:ietf:params:scim:schemas:oracle:idcs:DynamicResourceGroup"]
-  display_name  = var.dynamic_group_name
+  display_name  = local.dynamic_group_name
   description    = "[DO NOT REMOVE] Dynamic group for service connector and stream"
   matching_rule  = "All {resource.type = 'serviceconnector', resource.compartment.id = '${local.compartment_id}'}"
 
@@ -79,26 +79,6 @@ resource "oci_identity_policy" "firefly_auth_policy" {
   freeform_tags  = local.common_tags
 }
 
-
-# resource "oci_identity_user_group_membership" "firefly_user_group_membership" {
-#   depends_on = [module.firefly_oci_integration]
-#   group_id = oci_identity_group.firefly_auth.id
-#   user_id = oci_identity_user.firefly_user.id
-# }
-
-# Create API key from the public key returned by the Firefly integration API
-# This is only created on the first apply when skip_integration_request = false
-# For subsequent applies and destroy, set skip_integration_request = true
-# resource "oci_identity_api_key" "firefly_user_api_key" {
-#   count      = !var.skip_integration_request ? 1 : 0
-#   depends_on = [module.firefly_oci_integration]
-#   user_id    = oci_identity_user.firefly_user.id
-#   key_value  = module.firefly_oci_integration.public_key
-
-#   lifecycle {
-#     create_before_destroy = false
-#   }
-# }
 
 resource "oci_identity_domains_api_key" "firefly_user_api_key" {
   depends_on = [module.firefly_oci_integration, oci_identity_domains_user.firefly_user]
